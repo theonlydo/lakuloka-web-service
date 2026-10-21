@@ -8,12 +8,23 @@ export default function TrackingLookup({ initialCode }: { initialCode: string })
   const router = useRouter();
   const [code, setCode] = useState(initialCode);
 
+  const submit = (value: string) => {
+    const token = value.trim();
+    if (!token) return;
+    const host = window.location.hostname;
+    const path =
+      host === 'track.lakuloka.id' || host.startsWith('track.')
+        ? `/track/${encodeURIComponent(token)}`
+        : `/tracking/track/${encodeURIComponent(token)}`;
+    router.push(path);
+  };
+
   return (
     <form
       className="flex gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        if (code.trim()) router.push(`?code=${encodeURIComponent(code.trim())}`);
+        submit(code);
       }}
     >
       <div className="relative flex-1">
@@ -21,7 +32,7 @@ export default function TrackingLookup({ initialCode }: { initialCode: string })
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="cth. JASA-001"
+          placeholder="Tempel tautan atau kode tracking"
           className="w-full rounded-xl border border-input bg-background py-2.5 pl-9 pr-4 font-mono text-sm uppercase placeholder:normal-case placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>

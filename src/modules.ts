@@ -20,7 +20,7 @@ export interface ModuleInfo {
 
 export const MODULES: ModuleInfo[] = [
   { id: 'resto', prefix: 'resto', host: 'resto.lakuloka.id', devHost: 'resto.test' },
-  { id: 'tracking', prefix: 'tracking', host: 'tracking.lakuloka.id', devHost: 'tracking.test' },
+  { id: 'tracking', prefix: 'tracking', host: 'track.lakuloka.id', devHost: 'track.test' },
   { id: 'kitchen', prefix: 'kitchen', host: 'kitchen.lakuloka.id', devHost: 'kitchen.test' },
   { id: 'queue', prefix: 'queue', host: 'queue.lakuloka.id', devHost: 'queue.test' },
 ];

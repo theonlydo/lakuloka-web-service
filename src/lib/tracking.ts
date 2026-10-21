@@ -1,74 +1,97 @@
 /**
- * Dummy tracking domain — real job-status endpoints in lakuloka-be
- * have not been built yet. When ready, replace fetchTracking() with a
- * server-side fetch (same X-Menu-Key pattern as src/lib/api.ts) and
- * delete DUMMY_TRACKING. UI files stay unchanged.
+ * Public job tracking (F-29 K8). The token in the URL is the capability;
+ * no login and no menu key. BFF unwraps kasir-go's envelope, so `data` is
+ * the JobTracking object directly.
  */
 
 export type JobStatus =
   | 'received'
+  | 'waiting_confirmation'
   | 'in_progress'
-  | 'waiting_parts'
   | 'ready'
-  | 'completed';
+  | 'completed'
+  | 'cancelled';
 
 export interface TrackingTimelineEntry {
-  label: string;
+  status: JobStatus;
   at: string;
-  done: boolean;
 }
 
 export interface TrackingResult {
-  code: string;
-  customer: string;
-  service: string;
+  jobName: string;
   status: JobStatus;
-  progressPct: number;
-  updatedAt: string;
+  receivedAt: string | null;
+  estimatedDoneAt: string | null;
+  itemCount: number;
+  itemNames: string[];
   timeline: TrackingTimelineEntry[];
 }
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   received: 'Diterima',
+  waiting_confirmation: 'Menunggu Konfirmasi',
   in_progress: 'Dikerjakan',
-  waiting_parts: 'Menunggu Sparepart',
   ready: 'Siap Diambil',
   completed: 'Selesai',
+  cancelled: 'Dibatalkan',
 };
 
-export const DUMMY_TRACKING: Record<string, TrackingResult> = {
-  'JASA-001': {
-    code: 'JASA-001',
-    customer: 'Budi Santoso',
-    service: 'Servis Laptop — ganti keyboard',
-    status: 'in_progress',
-    progressPct: 60,
-    updatedAt: '2026-09-28T10:30:00+07:00',
-    timeline: [
-      { label: 'Pesanan diterima', at: '2026-09-27 09:00', done: true },
-      { label: 'Diagnosa selesai', at: '2026-09-27 14:00', done: true },
-      { label: 'Pengerjaan', at: '2026-09-28 08:00', done: false },
-      { label: 'Siap diambil', at: '-', done: false },
-    ],
-  },
-  'JASA-002': {
-    code: 'JASA-002',
-    customer: 'Siti Aminah',
-    service: 'Cuci AC 2 unit',
-    status: 'ready',
-    progressPct: 100,
-    updatedAt: '2026-09-28T09:15:00+07:00',
-    timeline: [
-      { label: 'Pesanan diterima', at: '2026-09-28 07:30', done: true },
-      { label: 'Pengerjaan', at: '2026-09-28 08:00', done: true },
-      { label: 'Siap diambil', at: '2026-09-28 09:15', done: true },
-    ],
-  },
-};
+export const JOB_STATUS_ORDER: JobStatus[] = [
+  'received',
+  'waiting_confirmation',
+  'in_progress',
+  'ready',
+  'completed',
+];
 
-export async function fetchTracking(code: string): Promise<TrackingResult> {
-  // TODO(lakuloka-be): GET /service-jobs/{code} with X-Menu-Key.
-  const hit = DUMMY_TRACKING[code.trim().toUpperCase()];
-  if (!hit) throw new Error('NOT_FOUND');
-  return hit;
+const STATUSES = new Set<string>(Object.keys(JOB_STATUS_LABEL));
+
+function normalizeStatus(value: unknown): JobStatus {
+  const raw = typeof value === 'string' ? value : '';
+  return STATUSES.has(raw) ? (raw as JobStatus) : 'received';
+}
+
+function getBaseUrl(): string {
+  return process.env.LAKULOKA_API_URL ?? 'https://api.lakuloka.id/v1';
+}
+
+export async function fetchTracking(token: string): Promise<TrackingResult> {
+  const trimmed = token.trim();
+  if (!trimmed) throw new Error('NOT_FOUND');
+
+  const res = await fetch(
+    `${getBaseUrl()}/public/track/${encodeURIComponent(trimmed)}`,
+    { headers: { Accept: 'application/json' }, cache: 'no-store' }
+  );
+
+  if (res.status === 404) throw new Error('NOT_FOUND');
+  if (res.status === 429) throw new Error('RATE_LIMITED');
+  if (!res.ok) throw new Error(`Failed to fetch tracking: ${res.status}`);
+
+  const json = await res.json();
+  const data = (json.data ?? json) as Partial<TrackingResult> & {
+    status?: unknown;
+  };
+
+  return {
+    jobName: data.jobName ?? '',
+    status: normalizeStatus(data.status),
+    receivedAt: data.receivedAt ?? null,
+    estimatedDoneAt: data.estimatedDoneAt ?? null,
+    itemCount: Number(data.itemCount ?? data.itemNames?.length ?? 0),
+    itemNames: Array.isArray(data.itemNames) ? data.itemNames : [],
+    timeline: Array.isArray(data.timeline)
+      ? data.timeline.map((entry) => ({
+          status: normalizeStatus(entry?.status),
+          at: entry?.at ?? '',
+        }))
+      : [],
+  };
+}
+
+export function progressPct(status: JobStatus): number {
+  if (status === 'cancelled') return 0;
+  const index = JOB_STATUS_ORDER.indexOf(status);
+  if (index < 0) return 0;
+  return Math.round(((index + 1) / JOB_STATUS_ORDER.length) * 100);
 }
