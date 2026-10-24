@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import {
   JOB_STATUS_LABEL,
   fetchTracking,
-  progressPct,
   type JobStatus,
 } from '~lib/tracking';
 
@@ -99,20 +98,6 @@ export default async function TrackingDetailPage({ params }: Props) {
             </div>
 
             <div className="p-4">
-              {result.status !== 'cancelled' && (
-                <>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-accent transition-all"
-                      style={{ width: `${progressPct(result.status)}%` }}
-                    />
-                  </div>
-                  <p className="mt-1 text-right text-xs text-muted-foreground">
-                    {progressPct(result.status)}%
-                  </p>
-                </>
-              )}
-
               {result.itemNames.length > 0 && (
                 <div className="mt-4 rounded-lg bg-muted/40 p-3 text-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -126,17 +111,17 @@ export default async function TrackingDetailPage({ params }: Props) {
                 </div>
               )}
 
-              <ol className="mt-4 space-y-2">
+              <ol aria-label="Riwayat progres pekerjaan" className="mt-6 ml-2 border-l-2 border-primary/30">
                 {result.timeline.map((entry, index) => (
                   <li
                     key={`${entry.status}-${entry.at}-${index}`}
-                    className="flex items-center gap-2 text-sm"
+                    className="relative pb-6 pl-5 text-sm"
                   >
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
-                    <span>{JOB_STATUS_LABEL[entry.status]}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
+                    <span aria-hidden="true" className="absolute -left-1.5 top-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                    <p className="font-semibold">{JOB_STATUS_LABEL[entry.status]}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {dateTime(entry.at)}
-                    </span>
+                    </p>
                   </li>
                 ))}
               </ol>

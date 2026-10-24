@@ -9,7 +9,10 @@ export default function TrackingLookup({ initialCode }: { initialCode: string })
   const [code, setCode] = useState(initialCode);
 
   const submit = (value: string) => {
-    const token = value.trim();
+    let token = value.trim();
+    if (/^https?:\/\//i.test(token)) {
+      try {const url = new URL(token);const match=url.pathname.match(/\/track\/([^/]+)\/?$/);if(!match)return;token=decodeURIComponent(match[1]);}catch{return;}
+    }
     if (!token) return;
     const host = window.location.hostname;
     const path =

@@ -28,17 +28,16 @@ export interface TrackingResult {
 }
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
-  received: 'Diterima',
+  received: 'Orderan diterima',
   waiting_confirmation: 'Menunggu Konfirmasi',
-  in_progress: 'Dikerjakan',
-  ready: 'Siap Diambil',
-  completed: 'Selesai',
+  in_progress: 'Proses',
+  ready: 'Selesai',
+  completed: 'Completed',
   cancelled: 'Dibatalkan',
 };
 
 export const JOB_STATUS_ORDER: JobStatus[] = [
   'received',
-  'waiting_confirmation',
   'in_progress',
   'ready',
   'completed',
