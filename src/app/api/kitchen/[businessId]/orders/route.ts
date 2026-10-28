@@ -8,7 +8,7 @@ interface RouteParams {
 /**
  * Dummy kitchen feed. Consumed by subscribeKitchenOrders() (src/lib/realtime.ts).
  * TODO(lakuloka-be): replace the dummy source with a server-side proxy to the
- * kitchen orders endpoint (same X-Menu-Key pattern as src/lib/api.ts).
+ * kitchen orders endpoint using src/lib/webToken.ts.
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { businessId } = await params;

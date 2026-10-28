@@ -1,32 +1,18 @@
 /**
  * Server-side API helper — NEVER import this in client components.
- * All calls inject X-Menu-Key from process.env.MENU_API_SECRET.
+ * All calls inject the daily X-Menu-Key derived by src/lib/webToken.ts.
  */
 
+import { getApiBaseUrl, webHeaders } from './webToken';
 import type { BusinessInfo, MenuData, OrderResult, CreateOrderPayload } from './types';
-
-function getBaseUrl(): string {
-  return process.env.LAKULOKA_API_URL ?? 'https://api.lakuloka.id/v1';
-}
-
-function getMenuKey(): string {
-  return process.env.MENU_API_SECRET ?? '';
-}
-
-function menuHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    'X-Menu-Key': getMenuKey(),
-  };
-}
 
 export async function fetchBusinessInfo(businessId: string): Promise<BusinessInfo> {
   const res = await fetch(
-    `${getBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}`,
-    { headers: menuHeaders(), cache: 'no-store' }
+    `${getApiBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}`,
+    { headers: webHeaders(), cache: 'no-store' }
   );
 
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
   if (res.status === 404) throw new Error('BUSINESS_NOT_FOUND');
   if (res.status === 403) throw new Error('MENU_DISABLED');
   if (!res.ok) throw new Error(`Failed to fetch business info: ${res.status}`);
@@ -37,10 +23,11 @@ export async function fetchBusinessInfo(businessId: string): Promise<BusinessInf
 
 export async function fetchMenuProducts(businessId: string): Promise<MenuData> {
   const res = await fetch(
-    `${getBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}/products`,
-    { headers: menuHeaders(), cache: 'no-store' }
+    `${getApiBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}/products`,
+    { headers: webHeaders(), cache: 'no-store' }
   );
 
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
   if (res.status === 404) throw new Error('BUSINESS_NOT_FOUND');
   if (res.status === 403) throw new Error('MENU_DISABLED');
   if (!res.ok) throw new Error(`Failed to fetch menu: ${res.status}`);
@@ -70,14 +57,15 @@ export async function createOrder(
   payload: CreateOrderPayload
 ): Promise<OrderResult> {
   const res = await fetch(
-    `${getBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}/order`,
+    `${getApiBaseUrl()}/digital-menu/${encodeURIComponent(businessId)}/order`,
     {
       method: 'POST',
-      headers: menuHeaders(),
+      headers: webHeaders(),
       body: JSON.stringify(payload),
     }
   );
 
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
   if (res.status === 404) throw new Error('BUSINESS_NOT_FOUND');
   if (res.status === 403) throw new Error('MENU_DISABLED');
 

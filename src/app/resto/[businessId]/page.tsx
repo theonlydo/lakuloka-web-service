@@ -50,8 +50,8 @@ export default async function BusinessPage({ params, searchParams }: Props) {
   }
 
   // F-33 self-pay availability (Gold+) — checked independently of the
-  // legacy business-info fetch above; any failure here just hides the
-  // self-pay UI, it never blocks the menu itself from rendering.
+  // business-info fetch above; any failure here just hides the self-pay UI,
+  // it never blocks the menu itself from rendering.
   const tableOrderingAvailable = await checkTableOrderingAvailability(businessId);
 
   return (

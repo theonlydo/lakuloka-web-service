@@ -1,8 +1,11 @@
 /**
  * Public job tracking (F-29 K8). The token in the URL is the capability;
- * no login and no menu key. BFF unwraps kasir-go's envelope, so `data` is
- * the JobTracking object directly.
+ * no login is required, but the API also requires the trusted web server's
+ * daily X-Menu-Key. BFF unwraps kasir-go's envelope, so `data` is the
+ * JobTracking object directly.
  */
+
+import { getApiBaseUrl, webHeaders } from './webToken';
 
 export type JobStatus =
   | 'received'
@@ -50,19 +53,16 @@ function normalizeStatus(value: unknown): JobStatus {
   return STATUSES.has(raw) ? (raw as JobStatus) : 'received';
 }
 
-function getBaseUrl(): string {
-  return process.env.LAKULOKA_API_URL ?? 'https://api.lakuloka.id/v1';
-}
-
 export async function fetchTracking(token: string): Promise<TrackingResult> {
   const trimmed = token.trim();
   if (!trimmed) throw new Error('NOT_FOUND');
 
   const res = await fetch(
-    `${getBaseUrl()}/public/track/${encodeURIComponent(trimmed)}`,
-    { headers: { Accept: 'application/json' }, cache: 'no-store' }
+    `${getApiBaseUrl()}/public/track/${encodeURIComponent(trimmed)}`,
+    { headers: webHeaders(), cache: 'no-store' }
   );
 
+  if (res.status === 401) throw new Error('UNAUTHORIZED');
   if (res.status === 404) throw new Error('NOT_FOUND');
   if (res.status === 429) throw new Error('RATE_LIMITED');
   if (!res.ok) throw new Error(`Failed to fetch tracking: ${res.status}`);

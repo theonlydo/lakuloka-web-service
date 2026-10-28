@@ -2,7 +2,7 @@
  * Dummy kitchen domain — real kitchen endpoints in lakuloka-be
  * have not been built yet. When ready, replace the dummy source in
  * src/app/api/kitchen/[businessId]/orders/route.ts with a server-side
- * proxy (same X-Menu-Key pattern as src/lib/api.ts). UI files stay unchanged.
+ * proxy using src/lib/webToken.ts. UI files stay unchanged.
  */
 
 export type KitchenOrderStatus = 'new' | 'preparing' | 'ready' | 'served';
