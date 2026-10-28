@@ -1,6 +1,6 @@
 /**
  * Server-side API helper — NEVER import this in client components.
- * All calls inject the daily X-Menu-Key derived by src/lib/webToken.ts.
+ * All calls inject the daily X-Web-Token derived by src/lib/webToken.ts.
  */
 
 import { getApiBaseUrl, webHeaders } from './webToken';

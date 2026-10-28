@@ -1,7 +1,7 @@
 /**
  * Public job tracking (F-29 K8). The token in the URL is the capability;
  * no login is required, but the API also requires the trusted web server's
- * daily X-Menu-Key. BFF unwraps kasir-go's envelope, so `data` is the
+ * daily X-Web-Token. BFF unwraps kasir-go's envelope, so `data` is the
  * JobTracking object directly.
  */
 

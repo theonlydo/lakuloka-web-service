@@ -1,5 +1,5 @@
 /**
- * Server-side only. Derives the daily X-Menu-Key shared by every
+ * Server-side only. Derives the daily X-Web-Token shared by every
  * lakuloka-web -> lakuloka-be call. Never import this in client components.
  */
 
@@ -12,9 +12,9 @@ export function getApiBaseUrl(): string {
 }
 
 export function getWebToken(now: Date = new Date()): string {
-  const secret = process.env.MENU_API_SECRET || '';
+  const secret = process.env.WEB_API_SECRET || '';
   if (!secret) {
-    throw new Error('MENU_API_SECRET is not configured');
+    throw new Error('WEB_API_SECRET is not configured');
   }
   return createHmac('sha256', secret)
     .update(`lakuloka-web:v1:${jakartaDate(now)}`)
@@ -25,7 +25,7 @@ export function webHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    'X-Menu-Key': getWebToken(),
+    'X-Web-Token': getWebToken(),
   };
 }
 
